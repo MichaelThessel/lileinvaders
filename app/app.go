@@ -10,10 +10,16 @@ type Config struct {
 }
 
 type App struct {
-	w    *sdl.Window
-	r    *sdl.Renderer
-	c    *Config
-	quit chan bool
+	w           *sdl.Window
+	r           *sdl.Renderer
+	c           *Config
+	quit        chan bool
+	keyHandlers []keyHandler
+}
+
+type keyHandler struct {
+	key      sdl.Keycode
+	callback func()
 }
 
 func New(c *Config) (*App, error) {
@@ -114,10 +120,28 @@ func (a *App) handleEvents() {
 						a.quit <- true
 						close(a.quit)
 					}()
+				default:
+					// Externally registered handlers
+					for _, kh := range a.keyHandlers {
+						if kh.key == e.(*sdl.KeyDownEvent).Keysym.Sym {
+							kh.callback()
+						}
+					}
 				}
 			}
 		}
 	})
+}
+
+func (a *App) RegisterKeyHandler(key sdl.Keycode, callback func()) {
+	a.keyHandlers = append(a.keyHandlers, keyHandler{
+		key:      key,
+		callback: callback,
+	})
+}
+
+func (a *App) GetRenderer() *sdl.Renderer {
+	return a.r
 }
 
 func (a *App) Destroy() {
