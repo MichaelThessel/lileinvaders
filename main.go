@@ -8,8 +8,16 @@ import (
 )
 
 func main() {
-	a := app.New()
-	if err := a.Setup(); err != nil {
+	// TODO: config needs to come from flags
+	config := &app.Config{
+		Width:     800,
+		Height:    600,
+		Title:     "e-Space",
+		FrameRate: 30,
+	}
+
+	a, err := app.New(config)
+	if err != nil {
 		panic(fmt.Sprintf("couldn't set up window %v", err))
 	}
 	defer a.Destroy()
