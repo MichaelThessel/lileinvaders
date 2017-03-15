@@ -2,6 +2,7 @@ package app
 
 import "github.com/veandco/go-sdl2/sdl"
 
+// Config holds the application configuration
 type Config struct {
 	Width     int
 	Height    int
@@ -9,19 +10,22 @@ type Config struct {
 	FrameRate uint32
 }
 
+// App is the main application
 type App struct {
-	w           *sdl.Window
-	r           *sdl.Renderer
-	c           *Config
-	quit        chan bool
-	keyHandlers []keyHandler
+	w            *sdl.Window
+	r            *sdl.Renderer
+	c            *Config
+	quit         chan bool
+	keyCallbacks []keyCallback
 }
 
-type keyHandler struct {
+// keyCallback defines key and callback associations
+type keyCallback struct {
 	key      sdl.Keycode
 	callback func()
 }
 
+// New returns a new app instance
 func New(c *Config) (*App, error) {
 	a := &App{c: c}
 	if err := a.setup(); err != nil {
@@ -31,6 +35,7 @@ func New(c *Config) (*App, error) {
 	return a, nil
 }
 
+// setup sets up the app
 func (a *App) setup() error {
 	if err := a.setupWindow(); err != nil {
 		return err
@@ -43,6 +48,8 @@ func (a *App) setup() error {
 	return nil
 }
 
+// Run starts the main app loop
+// a bool true on the quit channel will break the loop and quit the app
 func (a *App) Run() int {
 	a.quit = make(chan bool)
 
@@ -65,6 +72,7 @@ loop:
 	return 0
 }
 
+// setupWindow sets up the app window
 func (a *App) setupWindow() error {
 	var err error
 
@@ -82,6 +90,7 @@ func (a *App) setupWindow() error {
 	return err
 }
 
+// setupRenderer sets up the renderer
 func (a *App) setupRenderer() error {
 	var err error
 	sdl.Do(func() {
@@ -99,6 +108,7 @@ func (a *App) setupRenderer() error {
 	return nil
 }
 
+// setBackground sets the app background
 func (a *App) setBackground() {
 	a.r.Clear()
 	a.r.SetDrawColor(0, 0, 0, 0xFF)
@@ -107,6 +117,7 @@ func (a *App) setBackground() {
 	)
 }
 
+// handleEvents handles input events
 func (a *App) handleEvents() {
 	sdl.Do(func() {
 		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
@@ -122,7 +133,7 @@ func (a *App) handleEvents() {
 					}()
 				default:
 					// Externally registered handlers
-					for _, kh := range a.keyHandlers {
+					for _, kh := range a.keyCallbacks {
 						if kh.key == e.(*sdl.KeyDownEvent).Keysym.Sym {
 							kh.callback()
 						}
@@ -133,17 +144,20 @@ func (a *App) handleEvents() {
 	})
 }
 
+// RegisterKeyHandler allows to register keyboard event callbacks
 func (a *App) RegisterKeyHandler(key sdl.Keycode, callback func()) {
-	a.keyHandlers = append(a.keyHandlers, keyHandler{
+	a.keyCallbacks = append(a.keyCallbacks, keyCallback{
 		key:      key,
 		callback: callback,
 	})
 }
 
+// GetRenderer returns a renderer instance
 func (a *App) GetRenderer() *sdl.Renderer {
 	return a.r
 }
 
+// Destroy destroys the app
 func (a *App) Destroy() {
 	sdl.Do(func() {
 		a.w.Destroy()
