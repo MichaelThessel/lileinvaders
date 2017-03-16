@@ -23,8 +23,7 @@ func main() {
 	}
 	defer a.Destroy()
 
-	g := game.New(a)
-	g.Run()
+	game.New(a)
 
 	os.Exit(a.Run())
 }

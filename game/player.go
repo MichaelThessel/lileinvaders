@@ -4,6 +4,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+// player holds the player state
 type player struct {
 	r        *sdl.Renderer
 	x        int32
@@ -13,6 +14,7 @@ type player struct {
 	stepSize int32
 }
 
+// newPlayer generates a player
 func newPlayer(r *sdl.Renderer) *player {
 	maxX, maxY, _ := r.GetRendererOutputSize()
 	p := &player{
@@ -28,6 +30,7 @@ func newPlayer(r *sdl.Renderer) *player {
 	return p
 }
 
+// Draw draws the player
 func (p *player) Draw() {
 	p.r.SetDrawColor(0xFF, 0, 0, 0xFF)
 
@@ -36,6 +39,7 @@ func (p *player) Draw() {
 	)
 }
 
+// Move moves the player in a given direction
 func (p *player) Move(direction rune) {
 	maxX, _, _ := p.r.GetRendererOutputSize()
 	switch direction {
@@ -50,4 +54,9 @@ func (p *player) Move(direction rune) {
 			p.x = int32(maxX) - p.w
 		}
 	}
+}
+
+// Fire fires a bullet
+func (p *player) Fire(bullets *bulletList) {
+	newBullet(p.r, bullets, p.x+p.w/2, p.y+1, -1)
 }
