@@ -19,11 +19,14 @@ func main() {
 
 	a, err := app.New(config)
 	if err != nil {
-		panic(fmt.Sprintf("couldn't set up window %v", err))
+		fmt.Printf("couldn't set up window %v", err)
 	}
 	defer a.Destroy()
 
-	game.New(a)
+	if _, err := game.New(a); err != nil {
+		fmt.Printf("couldn't create game %v", err)
+		os.Exit(1)
+	}
 
 	os.Exit(a.Run())
 }

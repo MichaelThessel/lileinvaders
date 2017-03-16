@@ -22,7 +22,7 @@ func newBullet(r *sdl.Renderer, bl *bulletList, x, y, direction int32) {
 		w:         2,
 		h:         3,
 		direction: direction, // -1 up 1 down
-		speed:     15,
+		speed:     25,
 	}
 
 	*bl = append(*bl, b)

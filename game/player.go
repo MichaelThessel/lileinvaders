@@ -1,12 +1,16 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/veandco/go-sdl2/sdl"
+	img "github.com/veandco/go-sdl2/sdl_image"
 )
 
 // player holds the player state
 type player struct {
 	r        *sdl.Renderer
+	t        *sdl.Texture
 	x        int32
 	y        int32
 	w        int32
@@ -15,28 +19,30 @@ type player struct {
 }
 
 // newPlayer generates a player
-func newPlayer(r *sdl.Renderer) *player {
+func newPlayer(r *sdl.Renderer) (*player, error) {
 	maxX, maxY, _ := r.GetRendererOutputSize()
 	p := &player{
 		r:        r,
 		w:        50,
-		h:        50,
+		h:        57,
 		stepSize: 10,
+	}
+
+	var err error
+	p.t, err = img.LoadTexture(r, "assets/tank.png")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create player texture: %v", err)
 	}
 
 	p.x = int32(maxX)/2 - p.w/2
 	p.y = int32(maxY) - p.h
 
-	return p
+	return p, nil
 }
 
 // Draw draws the player
 func (p *player) Draw() {
-	p.r.SetDrawColor(0xFF, 0, 0, 0xFF)
-
-	p.r.FillRect(
-		&sdl.Rect{X: p.x, Y: p.y, W: p.w, H: p.h},
-	)
+	p.r.Copy(p.t, nil, &sdl.Rect{X: p.x, Y: p.y, W: p.w, H: p.h})
 }
 
 // Move moves the player in a given direction
@@ -58,5 +64,5 @@ func (p *player) Move(direction rune) {
 
 // Fire fires a bullet
 func (p *player) Fire(bullets *bulletList) {
-	newBullet(p.r, bullets, p.x+p.w/2, p.y+1, -1)
+	newBullet(p.r, bullets, p.x+p.w/2, p.y, -1)
 }

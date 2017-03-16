@@ -13,15 +13,20 @@ type Game struct {
 }
 
 // New returns a new game
-func New(a *app.App) *Game {
+func New(a *app.App) (*Game, error) {
 	g := &Game{a: a}
 
-	g.p = newPlayer(a.GetRenderer())
+	var err error
+	g.p, err = newPlayer(a.GetRenderer())
+	if err != nil {
+		return nil, err
+	}
+
 	g.bl = &bulletList{}
 
 	g.setup()
 
-	return g
+	return g, nil
 }
 
 // setup sets up the game
