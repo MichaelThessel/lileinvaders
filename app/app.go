@@ -1,6 +1,10 @@
 package app
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"sort"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // Config holds the application configuration
 type Config struct {
@@ -12,17 +16,12 @@ type Config struct {
 
 // App is the main application
 type App struct {
-	w            *sdl.Window
-	r            *sdl.Renderer
-	c            *Config
-	quit         chan bool
-	keyCallbacks []keyCallback
-}
-
-// keyCallback defines key and callback associations
-type keyCallback struct {
-	key      sdl.Keycode
-	callback func()
+	w               *sdl.Window
+	r               *sdl.Renderer
+	c               *Config
+	quit            chan bool
+	keyCallbacks    []keyCallback
+	renderCallbacks renderCallbacks
 }
 
 // New returns a new app instance
@@ -53,8 +52,12 @@ func (a *App) setup() error {
 func (a *App) Run() int {
 	a.quit = make(chan bool)
 
+	sort.Sort(a.renderCallbacks)
+
 loop:
 	for {
+		a.clearWindow()
+
 		a.handleEvents()
 
 		select {
@@ -63,7 +66,9 @@ loop:
 		default:
 		}
 
-		a.setBackground()
+		for _, rc := range a.renderCallbacks {
+			rc.callback()
+		}
 
 		a.r.Present()
 		sdl.Delay(1000 / a.c.FrameRate)
@@ -102,14 +107,14 @@ func (a *App) setupRenderer() error {
 	}
 
 	sdl.Do(func() {
-		a.setBackground()
+		a.clearWindow()
 	})
 
 	return nil
 }
 
-// setBackground sets the app background
-func (a *App) setBackground() {
+// clearWindow clears the window
+func (a *App) clearWindow() {
 	a.r.Clear()
 	a.r.SetDrawColor(0, 0, 0, 0xFF)
 	a.r.FillRect(
@@ -123,7 +128,10 @@ func (a *App) handleEvents() {
 		for e := sdl.PollEvent(); e != nil; e = sdl.PollEvent() {
 			switch e.(type) {
 			case *sdl.QuitEvent:
-				a.quit <- true
+				go func() {
+					a.quit <- true
+					close(a.quit)
+				}()
 			case *sdl.KeyDownEvent:
 				switch e.(*sdl.KeyDownEvent).Keysym.Sym {
 				case sdl.K_q:
@@ -144,10 +152,38 @@ func (a *App) handleEvents() {
 	})
 }
 
+// keyCallback defines key and callback associations
+type keyCallback struct {
+	key      sdl.Keycode
+	callback func()
+}
+
 // RegisterKeyHandler allows to register keyboard event callbacks
-func (a *App) RegisterKeyHandler(key sdl.Keycode, callback func()) {
+func (a *App) RegisterKeyCallback(key sdl.Keycode, callback func()) {
 	a.keyCallbacks = append(a.keyCallbacks, keyCallback{
 		key:      key,
+		callback: callback,
+	})
+}
+
+// renderCallback defines callbacks to inject into the render loop
+type renderCallback struct {
+	priority int
+	callback func()
+}
+
+// renderCallbacks holds render callbacks and implements sort.Interface
+type renderCallbacks []*renderCallback
+
+func (rc renderCallbacks) Less(i, j int) bool { return rc[i].priority < rc[j].priority }
+func (rc renderCallbacks) Len() int           { return len(rc) }
+func (rc renderCallbacks) Swap(i, j int)      { rc[i], rc[j] = rc[j], rc[i] }
+
+// RegisterRenderCallback registers a callback that will be called on each
+// render cycle
+func (a *App) RegisterRenderCallback(priority int, callback func()) {
+	a.renderCallbacks = append(a.renderCallbacks, &renderCallback{
+		priority: priority,
 		callback: callback,
 	})
 }

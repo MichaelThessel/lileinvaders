@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/MichaelThessel/spacee/app"
+	"github.com/MichaelThessel/spacee/game"
 )
 
 func main() {
@@ -21,6 +22,9 @@ func main() {
 		panic(fmt.Sprintf("couldn't set up window %v", err))
 	}
 	defer a.Destroy()
+
+	g := game.New(a)
+	g.Run()
 
 	os.Exit(a.Run())
 }
