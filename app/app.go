@@ -158,7 +158,7 @@ type keyCallback struct {
 	callback func()
 }
 
-// RegisterKeyHandler allows to register keyboard event callbacks
+// RegisterKeyCallback allows to register keyboard event callbacks
 func (a *App) RegisterKeyCallback(key sdl.Keycode, callback func()) {
 	a.keyCallbacks = append(a.keyCallbacks, keyCallback{
 		key:      key,
