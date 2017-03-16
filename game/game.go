@@ -12,14 +12,8 @@ type Game struct {
 
 func New(a *app.App) *Game {
 	g := &Game{a: a}
-	g.p = &player{
-		x:        0,
-		y:        0,
-		w:        50,
-		h:        50,
-		r:        a.GetRenderer(),
-		stepSize: 10,
-	}
+
+	g.p = newPlayer(a.GetRenderer())
 
 	return g
 }

@@ -13,6 +13,21 @@ type player struct {
 	stepSize int32
 }
 
+func newPlayer(r *sdl.Renderer) *player {
+	maxX, maxY, _ := r.GetRendererOutputSize()
+	p := &player{
+		r:        r,
+		w:        50,
+		h:        50,
+		stepSize: 10,
+	}
+
+	p.x = int32(maxX)/2 - p.w/2
+	p.y = int32(maxY) - p.h
+
+	return p
+}
+
 func (p *player) Draw() {
 	p.r.SetDrawColor(0xFF, 0, 0, 0xFF)
 
@@ -22,7 +37,7 @@ func (p *player) Draw() {
 }
 
 func (p *player) Move(direction rune) {
-	// TODO: window max size filter
+	maxX, _, _ := p.r.GetRendererOutputSize()
 	switch direction {
 	case 'l':
 		p.x -= p.stepSize
@@ -31,5 +46,8 @@ func (p *player) Move(direction rune) {
 		}
 	case 'r':
 		p.x += p.stepSize
+		if p.x+p.w > int32(maxX) {
+			p.x = int32(maxX) - p.w
+		}
 	}
 }
