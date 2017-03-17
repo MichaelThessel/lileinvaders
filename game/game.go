@@ -10,6 +10,7 @@ type Game struct {
 	a  *app.App
 	p  *player
 	bl *bulletList
+	ag *alienGrid
 }
 
 // New returns a new game
@@ -18,6 +19,11 @@ func New(a *app.App) (*Game, error) {
 
 	var err error
 	g.p, err = newPlayer(a.GetRenderer())
+	if err != nil {
+		return nil, err
+	}
+
+	g.ag, err = newAlienGrid(a.GetRenderer())
 	if err != nil {
 		return nil, err
 	}
@@ -38,4 +44,5 @@ func (g *Game) setup() {
 
 	g.a.RegisterRenderCallback(1, g.p.Draw)
 	g.a.RegisterRenderCallback(1, g.bl.Draw)
+	g.a.RegisterRenderCallback(1, g.ag.Draw)
 }
