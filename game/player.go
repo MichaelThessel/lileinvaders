@@ -23,8 +23,8 @@ func newPlayer(r *sdl.Renderer) (*player, error) {
 	maxX, maxY, _ := r.GetRendererOutputSize()
 	p := &player{
 		r:        r,
-		w:        50,
-		h:        57,
+		w:        90,
+		h:        54,
 		stepSize: 15,
 	}
 

@@ -33,7 +33,7 @@ func newBullet(r *sdl.Renderer, bl *bulletList, x, y, direction int32) {
 
 // Draw an individual bullet
 func (b *bullet) Draw() {
-	b.r.SetDrawColor(0, 0xFF, 0, 0xFF)
+	b.r.SetDrawColor(00, 0xFC, 0xFF, 0xFF)
 
 	b.r.FillRect(
 		&sdl.Rect{X: b.x, Y: b.y, W: b.w, H: b.h},
