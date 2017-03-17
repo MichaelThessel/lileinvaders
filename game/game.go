@@ -7,10 +7,10 @@ import (
 
 // Game holds the game state
 type Game struct {
-	a  *app.App
-	p  *player
-	bl *bulletList
-	ag *alienGrid
+	a   *app.App
+	p   *player
+	pbl *bulletList
+	ag  *alienGrid
 }
 
 // New returns a new game
@@ -28,7 +28,8 @@ func New(a *app.App) (*Game, error) {
 		return nil, err
 	}
 
-	g.bl = &bulletList{}
+	// Player bullet list
+	g.pbl = &bulletList{}
 
 	g.setup()
 
@@ -40,9 +41,9 @@ func (g *Game) setup() {
 	g.a.RegisterKeyCallback(sdl.K_LEFT, func() { g.p.Move('l') })
 	g.a.RegisterKeyCallback(sdl.K_RIGHT, func() { g.p.Move('r') })
 
-	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.p.Fire(g.bl) })
+	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.p.Fire(g.pbl) })
 
 	g.a.RegisterRenderCallback(1, g.p.Draw)
-	g.a.RegisterRenderCallback(1, g.bl.Draw)
+	g.a.RegisterRenderCallback(1, g.pbl.Draw)
 	g.a.RegisterRenderCallback(1, g.ag.Draw)
 }

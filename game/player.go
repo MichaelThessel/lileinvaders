@@ -64,5 +64,7 @@ func (p *player) Move(direction rune) {
 
 // Fire fires a bullet
 func (p *player) Fire(bullets *bulletList) {
-	newBullet(p.r, bullets, p.x+p.w/2, p.y, -1)
+	if len(*bullets) < 1 {
+		newBullet(p.r, bullets, p.x+p.w/2, p.y, -1)
+	}
 }

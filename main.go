@@ -11,8 +11,8 @@ import (
 func main() {
 	// TODO: config needs to come from flags
 	config := &app.Config{
-		Width:     800,
-		Height:    600,
+		Width:     1200,
+		Height:    800,
 		Title:     "e-Space",
 		FrameRate: 30,
 	}

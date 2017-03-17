@@ -23,7 +23,7 @@ func newAlien(r *sdl.Renderer, x, y int32) (*alien, error) {
 	a := &alien{
 		r:        r,
 		w:        80,
-		h:        59,
+		h:        86,
 		x:        x,
 		y:        y,
 		stepSize: 10,
@@ -72,16 +72,16 @@ func newAlienGrid(renderer *sdl.Renderer) (*alienGrid, error) {
 	ag := &alienGrid{
 		r:           renderer,
 		rows:        5,
-		cols:        6,
-		marginRow:   10,
-		marginCol:   10,
+		cols:        10,
+		marginRow:   20,
+		marginCol:   20,
 		direction:   1,
 		returnPoint: 30,
 		speed:       3,
 	}
 
 	textureWidth := 80 //TODO: get this dynamically
-	textureHeight := 59
+	textureHeight := 86
 
 	gridWidth := (textureWidth+ag.marginCol)*ag.cols - ag.marginCol
 
