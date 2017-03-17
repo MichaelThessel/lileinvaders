@@ -25,7 +25,7 @@ func newPlayer(r *sdl.Renderer) (*player, error) {
 		r:        r,
 		w:        50,
 		h:        57,
-		stepSize: 10,
+		stepSize: 15,
 	}
 
 	var err error
