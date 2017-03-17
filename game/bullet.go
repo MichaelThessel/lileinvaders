@@ -64,3 +64,15 @@ func (bl *bulletList) Draw() {
 	}
 	*bl = tmpBl
 }
+
+// remove removes a bullet from the bullet list
+func (bl *bulletList) remove(b *bullet) {
+	tmpBl := bulletList{}
+	for _, tb := range *bl {
+		if tb != b {
+			tmpBl = append(tmpBl, tb)
+		}
+	}
+
+	*bl = tmpBl
+}

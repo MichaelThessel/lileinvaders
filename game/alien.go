@@ -43,10 +43,6 @@ func (a *alien) Draw() {
 	a.r.Copy(a.t, nil, &sdl.Rect{X: a.x, Y: a.y, W: a.w, H: a.h})
 }
 
-// Move moves the alien in a given direction
-func (a *alien) Move() {
-}
-
 // Fire fires a bullet
 func (a *alien) Fire(bullets *bulletList) {
 	newBullet(a.r, bullets, a.x+a.w/2, a.y, -1)
@@ -172,4 +168,40 @@ func (ag *alienGrid) getDimensions() (x1, y1, x2, y2 int32) {
 	}
 
 	return
+}
+
+// test hit checks if a bullet has hit an alien in the grid
+func (ag *alienGrid) testHit(bl *bulletList) {
+	x1, y1, x2, _ := ag.getDimensions()
+
+	for _, b := range *bl {
+		// Exit if bullet is beyond grid dimensions
+		if b.x < x1 || b.x+b.w > x2 || b.y+b.h < y1 {
+			continue
+		}
+
+		// Check if alien has been hit
+		for _, a := range ag.alienList {
+			if a.y+a.h < b.y || a.x > b.x+b.w || a.x+a.w < b.x {
+				continue
+			}
+
+			// Hit detected: remove alien & bullet
+			ag.remove(a)
+			bl.remove(b)
+			break
+		}
+	}
+}
+
+// remove removes an alien from the grid
+func (ag *alienGrid) remove(a *alien) {
+	tmpAl := []*alien{}
+	for _, ta := range ag.alienList {
+		if ta != a {
+			tmpAl = append(tmpAl, ta)
+		}
+	}
+
+	ag.alienList = tmpAl
 }

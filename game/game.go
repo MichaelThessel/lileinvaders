@@ -38,12 +38,19 @@ func New(a *app.App) (*Game, error) {
 
 // setup sets up the game
 func (g *Game) setup() {
+	// Player movements
 	g.a.RegisterKeyCallback(sdl.K_LEFT, func() { g.p.Move('l') })
 	g.a.RegisterKeyCallback(sdl.K_RIGHT, func() { g.p.Move('r') })
 
+	// Player fire
 	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.p.Fire(g.pbl) })
 
+	// Draw player
 	g.a.RegisterRenderCallback(1, g.p.Draw)
+	// Draw player bullets
 	g.a.RegisterRenderCallback(1, g.pbl.Draw)
+	// Test if player bullets hit
+	g.a.RegisterRenderCallback(1, func() { g.ag.testHit(g.pbl) })
+	// Draw alien grid
 	g.a.RegisterRenderCallback(1, g.ag.Draw)
 }
