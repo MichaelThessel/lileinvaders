@@ -11,19 +11,29 @@ type Game struct {
 	p   *player
 	pbl *bulletList
 	ag  *alienGrid
+	c   *Config
+}
+
+type Config struct {
+	agc *alienGridConfig
+	pc  *playerConfig
 }
 
 // New returns a new game
 func New(a *app.App) (*Game, error) {
-	g := &Game{a: a}
-
 	var err error
-	g.p, err = newPlayer(a.GetRenderer())
+
+	g := &Game{a: a}
+	g.initConfig()
+
+	// Player
+	g.p, err = newPlayer(a.GetRenderer(), g.c.pc)
 	if err != nil {
 		return nil, err
 	}
 
-	g.ag, err = newAlienGrid(a.GetRenderer())
+	// Alien grid
+	g.ag, err = newAlienGrid(a.GetRenderer(), g.c.agc)
 	if err != nil {
 		return nil, err
 	}
@@ -34,6 +44,25 @@ func New(a *app.App) (*Game, error) {
 	g.setup()
 
 	return g, nil
+}
+
+// initConfig initalizes gthe game config
+func (g *Game) initConfig() {
+	g.c = &Config{
+		agc: &alienGridConfig{
+			rows:        5,
+			cols:        10,
+			marginRow:   20,
+			marginCol:   20,
+			returnPoint: 30,
+			speed:       4,
+			speedStep:   5,
+		},
+		pc: &playerConfig{
+			stepSize:    15,
+			bulletSpeed: 15,
+		},
+	}
 }
 
 // setup sets up the game

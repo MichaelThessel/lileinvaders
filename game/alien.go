@@ -9,24 +9,22 @@ import (
 
 // alien holds the alien state
 type alien struct {
-	r        *sdl.Renderer
-	t        *sdl.Texture
-	x        int32
-	y        int32
-	w        int32
-	h        int32
-	stepSize int32
+	r *sdl.Renderer
+	t *sdl.Texture
+	x int32
+	y int32
+	w int32
+	h int32
 }
 
 // newAlien generates a alien
 func newAlien(r *sdl.Renderer, x, y int32) (*alien, error) {
 	a := &alien{
-		r:        r,
-		w:        80,
-		h:        86,
-		x:        x,
-		y:        y,
-		stepSize: 10,
+		r: r,
+		w: 80,
+		h: 86,
+		x: x,
+		y: y,
 	}
 
 	var err error
@@ -43,65 +41,58 @@ func (a *alien) Draw() {
 	a.r.Copy(a.t, nil, &sdl.Rect{X: a.x, Y: a.y, W: a.w, H: a.h})
 }
 
-// Fire fires a bullet
-func (a *alien) Fire(bullets *bulletList) {
-	newBullet(a.r, bullets, a.x+a.w/2, a.y, -1)
-}
-
-// alienGrid holds the alien grid state
-type alienGrid struct {
-	r           *sdl.Renderer
-	alienList   []*alien
+// alienGridConfig holds the alien grid config
+type alienGridConfig struct {
 	rows        int   // number of rows
 	cols        int   // number of columns
 	marginRow   int   // space between rows
 	marginCol   int   // space between columns
-	direction   int32 // direction of x movement (1: left, -1: right)
 	returnPoint int32 // when to switch the x direction
 	speed       int32 // grid movement speed
 	speedStep   int   // after how many drops to increase the speed
-	dropCount   int   // How often the grid moved down in y
+}
 
+// alienGrid holds the alien grid state
+type alienGrid struct {
+	c         *alienGridConfig
+	r         *sdl.Renderer
+	alienList []*alien
+	direction int32 // direction of x movement (1: left, -1: right)
+	dropCount int   // How often the grid moved down in y
 }
 
 // newAlienGrid creates a new alien grid
-func newAlienGrid(renderer *sdl.Renderer) (*alienGrid, error) {
+func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error) {
 	maxX, _, _ := renderer.GetRendererOutputSize()
 
 	ag := &alienGrid{
-		r:           renderer,
-		rows:        5,
-		cols:        10,
-		marginRow:   20,
-		marginCol:   20,
-		direction:   1,
-		returnPoint: 30,
-		speed:       4,
-		speedStep:   5,
-		dropCount:   0,
+		c:         c,
+		r:         renderer,
+		direction: 1,
+		dropCount: 0,
 	}
 
 	textureWidth := 80 //TODO: get this dynamically
 	textureHeight := 86
 
-	gridWidth := (textureWidth+ag.marginCol)*ag.cols - ag.marginCol
+	gridWidth := (textureWidth+ag.c.marginCol)*ag.c.cols - ag.c.marginCol
 
 	startX := (maxX - gridWidth) / 2
 	startY := 50
 
 	currentX := startX
 	currentY := startY
-	for r := 0; r < ag.rows; r++ {
-		for c := 0; c < ag.cols; c++ {
+	for r := 0; r < ag.c.rows; r++ {
+		for c := 0; c < ag.c.cols; c++ {
 			a, err := newAlien(renderer, int32(currentX), int32(currentY))
-			currentX += textureWidth + ag.marginCol
+			currentX += textureWidth + ag.c.marginCol
 			if err != nil {
 				return nil, err
 			}
 			ag.alienList = append(ag.alienList, a)
 		}
 		currentX = startX
-		currentY += textureHeight + ag.marginRow
+		currentY += textureHeight + ag.c.marginRow
 	}
 
 	return ag, nil
@@ -123,10 +114,10 @@ func (ag *alienGrid) move() {
 
 	// Check if the grid hits the boundary
 	moveY := false
-	if x2 >= int32(maxX)-ag.returnPoint {
+	if x2 >= int32(maxX)-ag.c.returnPoint {
 		ag.direction = -1
 		moveY = true
-	} else if x1 <= ag.returnPoint {
+	} else if x1 <= ag.c.returnPoint {
 		ag.direction = 1
 		moveY = true
 	}
@@ -134,14 +125,14 @@ func (ag *alienGrid) move() {
 	// Increase the speed over time
 	if moveY {
 		ag.dropCount++
-		if ag.dropCount%ag.speedStep == 0 {
-			ag.speed++
+		if ag.dropCount%ag.c.speedStep == 0 {
+			ag.c.speed++
 		}
 	}
 
 	// Move all aliens
 	for _, a := range ag.alienList {
-		a.x += ag.direction * ag.speed
+		a.x += ag.direction * ag.c.speed
 		if moveY {
 			a.y += 3
 		}

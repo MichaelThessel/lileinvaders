@@ -14,7 +14,7 @@ type bullet struct {
 }
 
 // newBullet renerates a new bullet and adds it to the bullet list
-func newBullet(r *sdl.Renderer, bl *bulletList, x, y, direction int32) {
+func newBullet(r *sdl.Renderer, bl *bulletList, x, y, speed, direction int32) {
 	b := &bullet{
 		r:         r,
 		x:         x,
@@ -22,7 +22,7 @@ func newBullet(r *sdl.Renderer, bl *bulletList, x, y, direction int32) {
 		w:         3,
 		h:         5,
 		direction: direction, // -1 up 1 down
-		speed:     25,
+		speed:     speed,
 	}
 
 	*bl = append(*bl, b)
