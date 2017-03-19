@@ -15,6 +15,7 @@ type Game struct {
 	c   *Config
 }
 
+// Config holds game configuration
 type Config struct {
 	agc *alienGridConfig
 	pc  *playerConfig
@@ -60,34 +61,33 @@ func (g *Game) initConfig() {
 			speed:       4,
 			speedStep:   5,
 			bulletSpeed: 15,
-			fireRate:    0.15,
+			fireRate:    0.14,
 		},
 		pc: &playerConfig{
 			stepSize:    15,
 			bulletSpeed: 15,
+			lifes:       3,
 		},
 	}
 }
 
 // setup sets up the game
 func (g *Game) setup() {
-	// Player movements
-	g.a.RegisterKeyCallback(sdl.K_LEFT, func() { g.p.Move('l') })
-	g.a.RegisterKeyCallback(sdl.K_RIGHT, func() { g.p.Move('r') })
-
-	// Player fire
-	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.p.Fire(g.pbl) })
+	g.a.RegisterKeyCallback(sdl.K_LEFT, func() { g.p.Move('l') })    // left
+	g.a.RegisterKeyCallback(sdl.K_RIGHT, func() { g.p.Move('r') })   // right
+	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.p.Fire(g.pbl) }) // fire
 
 	// Draw player
 	g.a.RegisterRenderCallback(1, g.p.Draw)
 
-	// Draw player bullets
+	// Draw player & alien bullets
 	g.a.RegisterRenderCallback(1, g.abl.Draw)
-	// Draw alien bullets
 	g.a.RegisterRenderCallback(1, g.pbl.Draw)
 
-	// Test if player bullets hit
+	// Test if bullets have hit
 	g.a.RegisterRenderCallback(1, func() { g.ag.testHit(g.pbl) })
+	g.a.RegisterRenderCallback(1, func() { g.p.testHit(g.abl) })
+
 	// Draw alien grid
 	g.a.RegisterRenderCallback(1, g.ag.Draw)
 

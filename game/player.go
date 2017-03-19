@@ -11,6 +11,7 @@ import (
 type playerConfig struct {
 	stepSize    int32
 	bulletSpeed int32
+	lifes       int
 }
 
 // player holds the player state
@@ -81,5 +82,23 @@ func (p *player) Fire(bullets *bulletList) {
 				direction: -1,
 			},
 		)
+	}
+}
+
+// test hit checks if a bullet has hit player
+func (p *player) testHit(bl *bulletList) {
+	for _, b := range *bl {
+		// Continue if bullet is beyond player dimensions
+		if b.y+b.h < p.y || b.x+b.w < p.x || b.x > p.x+p.w {
+			continue
+		}
+
+		bl.remove(b)
+
+		p.c.lifes--
+		if p.c.lifes == 0 {
+			// TODO: ending screen
+			panic("dead")
+		}
 	}
 }
