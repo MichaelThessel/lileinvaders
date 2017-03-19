@@ -245,6 +245,9 @@ func (ag *alienGrid) fire(bullets *bulletList) {
 				&bulletConfig{
 					speed:     ag.c.bulletSpeed,
 					direction: 1,
+					colorR:    0xF6,
+					colorG:    0x25,
+					colorB:    0x9B,
 				},
 			)
 		}

@@ -80,6 +80,9 @@ func (p *player) Fire(bullets *bulletList) {
 			&bulletConfig{
 				speed:     p.c.bulletSpeed,
 				direction: -1,
+				colorR:    0x00,
+				colorG:    0xFC,
+				colorB:    0xFF,
 			},
 		)
 	}

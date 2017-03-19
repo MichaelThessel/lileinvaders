@@ -6,6 +6,9 @@ import "github.com/veandco/go-sdl2/sdl"
 type bulletConfig struct {
 	speed     int32
 	direction int32 // -1 up 1 down
+	colorR    uint8
+	colorG    uint8
+	colorB    uint8
 }
 
 // bullet holds bullet state information
@@ -25,8 +28,8 @@ func newBullet(r *sdl.Renderer, bl *bulletList, x, y int32, c *bulletConfig) {
 		c: c,
 		x: x,
 		y: y,
-		w: 3,
-		h: 5,
+		w: 7,
+		h: 9,
 	}
 
 	*bl = append(*bl, b)
@@ -37,7 +40,7 @@ func newBullet(r *sdl.Renderer, bl *bulletList, x, y int32, c *bulletConfig) {
 
 // Draw an individual bullet
 func (b *bullet) Draw() {
-	b.r.SetDrawColor(00, 0xFC, 0xFF, 0xFF)
+	b.r.SetDrawColor(b.c.colorR, b.c.colorG, b.c.colorB, 0xFF)
 
 	b.r.FillRect(
 		&sdl.Rect{X: b.x, Y: b.y, W: b.w, H: b.h},
