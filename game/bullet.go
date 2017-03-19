@@ -2,27 +2,31 @@ package game
 
 import "github.com/veandco/go-sdl2/sdl"
 
+// bulletConfig holds bullet configuration
+type bulletConfig struct {
+	speed     int32
+	direction int32 // -1 up 1 down
+}
+
 // bullet holds bullet state information
 type bullet struct {
-	r         *sdl.Renderer
-	x         int32
-	y         int32
-	w         int32
-	h         int32
-	direction int32
-	speed     int32
+	c *bulletConfig
+	r *sdl.Renderer
+	x int32
+	y int32
+	w int32
+	h int32
 }
 
 // newBullet renerates a new bullet and adds it to the bullet list
-func newBullet(r *sdl.Renderer, bl *bulletList, x, y, speed, direction int32) {
+func newBullet(r *sdl.Renderer, bl *bulletList, x, y int32, c *bulletConfig) {
 	b := &bullet{
-		r:         r,
-		x:         x,
-		y:         y,
-		w:         3,
-		h:         5,
-		direction: direction, // -1 up 1 down
-		speed:     speed,
+		r: r,
+		c: c,
+		x: x,
+		y: y,
+		w: 3,
+		h: 5,
 	}
 
 	*bl = append(*bl, b)
@@ -45,7 +49,7 @@ func (b *bullet) Draw() {
 func (b *bullet) Update() bool {
 	_, maxY, _ := b.r.GetRendererOutputSize()
 
-	b.y += b.direction * b.speed
+	b.y += b.c.direction * b.c.speed
 
 	return !(b.y < 0 || b.y > int32(maxY))
 }

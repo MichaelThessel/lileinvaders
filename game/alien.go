@@ -2,6 +2,7 @@ package game
 
 import (
 	"fmt"
+	"math/rand"
 
 	"github.com/veandco/go-sdl2/sdl"
 	img "github.com/veandco/go-sdl2/sdl_image"
@@ -43,22 +44,25 @@ func (a *alien) Draw() {
 
 // alienGridConfig holds the alien grid config
 type alienGridConfig struct {
-	rows        int   // number of rows
-	cols        int   // number of columns
-	marginRow   int   // space between rows
-	marginCol   int   // space between columns
-	returnPoint int32 // when to switch the x direction
-	speed       int32 // grid movement speed
-	speedStep   int   // after how many drops to increase the speed
+	rows        int     // number of rows
+	cols        int     // number of columns
+	marginRow   int     // space between rows
+	marginCol   int     // space between columns
+	returnPoint int32   // when to switch the x direction
+	speed       int32   // grid movement speed
+	speedStep   int     // after how many drops to increase the speed
+	bulletSpeed int32   // Speed of a bullet
+	fireRate    float64 // Rate at that the aliens fire
 }
 
 // alienGrid holds the alien grid state
 type alienGrid struct {
-	c         *alienGridConfig
-	r         *sdl.Renderer
-	alienList []*alien
-	direction int32 // direction of x movement (1: left, -1: right)
-	dropCount int   // How often the grid moved down in y
+	c            *alienGridConfig
+	r            *sdl.Renderer
+	alienList    []*alien   // List of all aliens
+	alienGridPos [][]*alien // List of all alien grid positions
+	direction    int32      // direction of x movement (1: left, -1: right)
+	dropCount    int        // How often the grid moved down in y
 }
 
 // newAlienGrid creates a new alien grid
@@ -82,7 +86,9 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 
 	currentX := startX
 	currentY := startY
+	ag.alienGridPos = make([][]*alien, ag.c.rows)
 	for r := 0; r < ag.c.rows; r++ {
+		ag.alienGridPos[r] = make([]*alien, ag.c.cols)
 		for c := 0; c < ag.c.cols; c++ {
 			a, err := newAlien(renderer, int32(currentX), int32(currentY))
 			currentX += textureWidth + ag.c.marginCol
@@ -90,6 +96,7 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 				return nil, err
 			}
 			ag.alienList = append(ag.alienList, a)
+			ag.alienGridPos[r][c] = a
 		}
 		currentX = startX
 		currentY += textureHeight + ag.c.marginRow
@@ -187,12 +194,59 @@ func (ag *alienGrid) testHit(bl *bulletList) {
 
 // remove removes an alien from the grid
 func (ag *alienGrid) remove(a *alien) {
+	// Remove alien from alien list
 	tmpAl := []*alien{}
 	for _, ta := range ag.alienList {
 		if ta != a {
 			tmpAl = append(tmpAl, ta)
 		}
 	}
-
 	ag.alienList = tmpAl
+
+	// Remove alien from alien grid position
+	for r := range ag.alienGridPos {
+		for c, ta := range ag.alienGridPos[r] {
+			if ta == a {
+				ag.alienGridPos[r][c] = nil
+				return
+			}
+		}
+	}
+}
+
+// fire randomly fires a bullets
+func (ag *alienGrid) fire(bullets *bulletList) {
+	if rand.Float64() > ag.c.fireRate {
+		return
+	}
+
+	// Find lowest aliens
+	bottomAliens := make(map[int]*alien, ag.c.cols)
+	for r := range ag.alienGridPos {
+		for c, a := range ag.alienGridPos[r] {
+			if ag.alienGridPos[r][c] != nil {
+				bottomAliens[c] = a
+			}
+		}
+	}
+
+	for c := 0; c < ag.c.cols; c++ {
+		if rand.Float64() > ag.c.fireRate {
+			continue
+		}
+
+		if bottomAliens[c] != nil {
+			a := bottomAliens[c]
+			newBullet(
+				ag.r,
+				bullets,
+				a.x+a.w/2,
+				a.y+a.h,
+				&bulletConfig{
+					speed:     ag.c.bulletSpeed,
+					direction: 1,
+				},
+			)
+		}
+	}
 }

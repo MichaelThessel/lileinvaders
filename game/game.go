@@ -9,7 +9,8 @@ import (
 type Game struct {
 	a   *app.App
 	p   *player
-	pbl *bulletList
+	pbl *bulletList // Player bullet list
+	abl *bulletList // Alien bullet list
 	ag  *alienGrid
 	c   *Config
 }
@@ -23,7 +24,11 @@ type Config struct {
 func New(a *app.App) (*Game, error) {
 	var err error
 
-	g := &Game{a: a}
+	g := &Game{
+		a:   a,
+		pbl: &bulletList{},
+		abl: &bulletList{},
+	}
 	g.initConfig()
 
 	// Player
@@ -37,9 +42,6 @@ func New(a *app.App) (*Game, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	// Player bullet list
-	g.pbl = &bulletList{}
 
 	g.setup()
 
@@ -57,6 +59,8 @@ func (g *Game) initConfig() {
 			returnPoint: 30,
 			speed:       4,
 			speedStep:   5,
+			bulletSpeed: 15,
+			fireRate:    0.15,
 		},
 		pc: &playerConfig{
 			stepSize:    15,
@@ -76,10 +80,17 @@ func (g *Game) setup() {
 
 	// Draw player
 	g.a.RegisterRenderCallback(1, g.p.Draw)
+
 	// Draw player bullets
+	g.a.RegisterRenderCallback(1, g.abl.Draw)
+	// Draw alien bullets
 	g.a.RegisterRenderCallback(1, g.pbl.Draw)
+
 	// Test if player bullets hit
 	g.a.RegisterRenderCallback(1, func() { g.ag.testHit(g.pbl) })
 	// Draw alien grid
 	g.a.RegisterRenderCallback(1, g.ag.Draw)
+
+	// Aliens fire
+	g.a.RegisterRenderCallback(1, func() { g.ag.fire(g.abl) })
 }
