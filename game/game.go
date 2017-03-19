@@ -29,9 +29,10 @@ func New(a *app.App) (*Game, error) {
 
 	g := &Game{
 		a:     a,
+		score: 0,
 		pbl:   &bulletList{},
 		abl:   &bulletList{},
-		score: 0,
+		ag:    &alienGrid{},
 	}
 	g.initConfig()
 
@@ -41,8 +42,8 @@ func New(a *app.App) (*Game, error) {
 		return nil, err
 	}
 
-	// Alien grid
-	g.ag, err = newAlienGrid(a.GetRenderer(), g.c.agc)
+	// Start a new level
+	err = g.startLevel(a.GetRenderer())
 	if err != nil {
 		return nil, err
 	}
@@ -73,7 +74,7 @@ func (g *Game) initConfig() {
 			fireRate:    0.05,
 		},
 		pc: &playerConfig{
-			stepSize:    15,
+			stepSize:    30,
 			bulletSpeed: 30,
 			lifes:       5,
 		},
@@ -98,16 +99,33 @@ func (g *Game) setup() {
 	g.a.RegisterRenderCallback(1, g.ag.Draw)
 
 	// Draw stats
-	g.a.RegisterRenderCallback(1, func() { g.stats.Draw(g.p.c.lifes, g.score) })
+	g.a.RegisterRenderCallback(1, func() { g.stats.Draw(g.p.lifes, g.score) })
 
 	// Test if bullets have hit
 	g.a.RegisterRenderCallback(1, func() {
-		if g.ag.testHit(g.pbl) {
+		if hit, len := g.ag.testHit(g.pbl); hit {
 			g.score += 30
+			if len == 0 {
+				g.startLevel(g.a.GetRenderer())
+			}
 		}
 	})
 	g.a.RegisterRenderCallback(1, func() { g.p.testHit(g.abl) })
 
 	// Aliens fire
 	g.a.RegisterRenderCallback(1, func() { g.ag.fire(g.abl) })
+}
+
+// startLevel starts a level
+func (g *Game) startLevel(r *sdl.Renderer) error {
+	// Reset alien grid
+	ag, err := newAlienGrid(r, g.c.agc)
+	*g.ag = *ag
+
+	// Reset bullet list
+	bl := bulletList{}
+	*g.abl = bl
+	*g.pbl = bl
+
+	return err
 }

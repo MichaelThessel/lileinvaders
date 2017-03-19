@@ -44,13 +44,13 @@ func (a *alien) Draw() {
 
 // alienGridConfig holds the alien grid config
 type alienGridConfig struct {
-	rows        int     // number of rows
-	cols        int     // number of columns
-	marginRow   int     // space between rows
-	marginCol   int     // space between columns
-	returnPoint int32   // when to switch the x direction
-	speed       int32   // grid movement speed
-	speedStep   int     // after how many drops to increase the speed
+	rows        int     // Number of rows
+	cols        int     // Number of columns
+	marginRow   int     // Space between rows
+	marginCol   int     // Space between columns
+	returnPoint int32   // When to switch the x direction
+	speed       int32   // Grid movement speed
+	speedStep   int     // After how many drops to increase the speed
 	bulletSpeed int32   // Speed of a bullet
 	fireRate    float64 // Rate at that the aliens fire
 }
@@ -63,6 +63,7 @@ type alienGrid struct {
 	alienGridPos [][]*alien // List of all alien grid positions
 	direction    int32      // direction of x movement (1: left, -1: right)
 	dropCount    int        // How often the grid moved down in y
+	speed        int32      // Grid movement speed
 }
 
 // newAlienGrid creates a new alien grid
@@ -74,6 +75,7 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 		r:         renderer,
 		direction: 1,
 		dropCount: 0,
+		speed:     c.speed,
 	}
 
 	textureWidth := 80 //TODO: get this dynamically
@@ -133,13 +135,13 @@ func (ag *alienGrid) move() {
 	if moveY {
 		ag.dropCount++
 		if ag.dropCount%ag.c.speedStep == 0 {
-			ag.c.speed++
+			ag.speed++
 		}
 	}
 
 	// Move all aliens
 	for _, a := range ag.alienList {
-		a.x += ag.direction * ag.c.speed
+		a.x += ag.direction * ag.speed
 		if moveY {
 			a.y += 3
 		}
@@ -169,7 +171,7 @@ func (ag *alienGrid) getDimensions() (x1, y1, x2, y2 int32) {
 }
 
 // test hit checks if a bullet has hit an alien in the grid
-func (ag *alienGrid) testHit(bl *bulletList) bool {
+func (ag *alienGrid) testHit(bl *bulletList) (bool, int) {
 	x1, y1, x2, _ := ag.getDimensions()
 
 	for _, b := range *bl {
@@ -188,11 +190,11 @@ func (ag *alienGrid) testHit(bl *bulletList) bool {
 			ag.remove(a)
 			bl.remove(b)
 
-			return true
+			return true, len(ag.alienList)
 		}
 	}
 
-	return false
+	return false, len(ag.alienList)
 }
 
 // remove removes an alien from the grid

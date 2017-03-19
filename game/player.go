@@ -16,23 +16,25 @@ type playerConfig struct {
 
 // player holds the player state
 type player struct {
-	c *playerConfig
-	r *sdl.Renderer
-	t *sdl.Texture
-	x int32
-	y int32
-	w int32
-	h int32
+	c     *playerConfig
+	r     *sdl.Renderer
+	t     *sdl.Texture
+	x     int32
+	y     int32
+	w     int32
+	h     int32
+	lifes int
 }
 
 // newPlayer generates a player
 func newPlayer(r *sdl.Renderer, c *playerConfig) (*player, error) {
 	maxX, maxY, _ := r.GetRendererOutputSize()
 	p := &player{
-		c: c,
-		r: r,
-		w: 90,
-		h: 54,
+		c:     c,
+		r:     r,
+		w:     90,
+		h:     54,
+		lifes: c.lifes,
 	}
 
 	var err error
@@ -98,8 +100,8 @@ func (p *player) testHit(bl *bulletList) {
 
 		bl.remove(b)
 
-		p.c.lifes--
-		if p.c.lifes == 0 {
+		p.lifes--
+		if p.lifes == 0 {
 			// TODO: ending screen
 			panic("dead")
 		}
