@@ -5,6 +5,7 @@ import (
 
 	"github.com/veandco/go-sdl2/sdl"
 	img "github.com/veandco/go-sdl2/sdl_image"
+	mix "github.com/veandco/go-sdl2/sdl_mixer"
 )
 
 // playerConfig holds the player configuration
@@ -16,14 +17,15 @@ type playerConfig struct {
 
 // player holds the player state
 type player struct {
-	c     *playerConfig
-	r     *sdl.Renderer
-	t     *sdl.Texture
-	x     int32
-	y     int32
-	w     int32
-	h     int32
-	lifes int
+	c      *playerConfig
+	r      *sdl.Renderer
+	t      *sdl.Texture
+	sounds map[string]*mix.Chunk
+	x      int32
+	y      int32
+	w      int32
+	h      int32
+	lifes  int
 }
 
 // newPlayer generates a player
@@ -37,14 +39,27 @@ func newPlayer(r *sdl.Renderer, c *playerConfig) (*player, error) {
 		lifes: c.lifes,
 	}
 
+	// Set texture
 	var err error
 	p.t, err = img.LoadTexture(r, "assets/tank.png")
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create player texture: %v", err)
 	}
 
+	// Set position
 	p.x = int32(maxX)/2 - p.w/2
 	p.y = int32(maxY) - p.h
+
+	// Set sounds
+	p.sounds = make(map[string]*mix.Chunk, 0)
+	p.sounds["fire"], err = mix.LoadWAV("assets/sounds/fire.wav")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't load sound: %v", err)
+	}
+	p.sounds["hit"], err = mix.LoadWAV("assets/sounds/playerhit.wav")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't load sound: %v", err)
+	}
 
 	return p, nil
 }
@@ -73,21 +88,25 @@ func (p *player) Move(direction rune) {
 
 // Fire fires a bullet
 func (p *player) Fire(bullets *bulletList) {
-	if len(*bullets) < 1 {
-		newBullet(
-			p.r,
-			bullets,
-			p.x+p.w/2,
-			p.y,
-			&bulletConfig{
-				speed:     p.c.bulletSpeed,
-				direction: -1,
-				colorR:    0x00,
-				colorG:    0xFC,
-				colorB:    0xFF,
-			},
-		)
+	if len(*bullets) > 0 {
+		return
 	}
+
+	newBullet(
+		p.r,
+		bullets,
+		p.x+p.w/2,
+		p.y,
+		&bulletConfig{
+			speed:     p.c.bulletSpeed,
+			direction: -1,
+			colorR:    0x00,
+			colorG:    0xFC,
+			colorB:    0xFF,
+		},
+	)
+
+	p.sounds["fire"].Play(0, 0)
 }
 
 // test hit checks if a bullet has hit player
@@ -99,6 +118,8 @@ func (p *player) testHit(bl *bulletList) {
 		}
 
 		bl.remove(b)
+
+		p.sounds["hit"].Play(0, 0)
 
 		p.lifes--
 		if p.lifes == 0 {

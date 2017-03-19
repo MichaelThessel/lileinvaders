@@ -6,6 +6,7 @@ import (
 
 	"github.com/veandco/go-sdl2/sdl"
 	img "github.com/veandco/go-sdl2/sdl_image"
+	mix "github.com/veandco/go-sdl2/sdl_mixer"
 )
 
 // alien holds the alien state
@@ -59,6 +60,7 @@ type alienGridConfig struct {
 type alienGrid struct {
 	c            *alienGridConfig
 	r            *sdl.Renderer
+	sounds       map[string]*mix.Chunk
 	alienList    []*alien   // List of all aliens
 	alienGridPos [][]*alien // List of all alien grid positions
 	direction    int32      // direction of x movement (1: left, -1: right)
@@ -78,6 +80,7 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 		speed:     c.speed,
 	}
 
+	var err error
 	textureWidth := 80 //TODO: get this dynamically
 	textureHeight := 86
 
@@ -102,6 +105,13 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 		}
 		currentX = startX
 		currentY += textureHeight + ag.c.marginRow
+	}
+
+	// Set sounds
+	ag.sounds = make(map[string]*mix.Chunk, 0)
+	ag.sounds["hit"], err = mix.LoadWAV("assets/sounds/alienhit.wav")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't load sound: %v", err)
 	}
 
 	return ag, nil
@@ -189,6 +199,8 @@ func (ag *alienGrid) testHit(bl *bulletList) (bool, int) {
 			// Hit detected: remove alien & bullet
 			ag.remove(a)
 			bl.remove(b)
+
+			ag.sounds["hit"].Play(0, 0)
 
 			return true, len(ag.alienList)
 		}

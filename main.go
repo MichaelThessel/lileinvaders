@@ -7,6 +7,7 @@ import (
 	"github.com/MichaelThessel/spacee/app"
 	"github.com/MichaelThessel/spacee/game"
 	"github.com/veandco/go-sdl2/sdl"
+	mix "github.com/veandco/go-sdl2/sdl_mixer"
 	ttf "github.com/veandco/go-sdl2/sdl_ttf"
 )
 
@@ -30,6 +31,18 @@ func main() {
 		os.Exit(1)
 	}
 	defer ttf.Quit()
+
+	if err := mix.Init(0); err != nil {
+		fmt.Printf("could not initialize mixer: %v", err)
+		os.Exit(1)
+	}
+	defer mix.Quit()
+
+	sndfmt := uint16(mix.DEFAULT_FORMAT)
+	if err := mix.OpenAudio(44100, sndfmt, 2, 1024); err != nil {
+		fmt.Printf("could not initialize audio: %v", err)
+		os.Exit(1)
+	}
 
 	a, err := app.New(config)
 	if err != nil {
