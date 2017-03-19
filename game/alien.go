@@ -50,10 +50,12 @@ type alienGridConfig struct {
 	marginRow   int     // Space between rows
 	marginCol   int     // Space between columns
 	returnPoint int32   // When to switch the x direction
-	speed       int32   // Grid movement speed
+	speedMax    int     // Grid movement max speed
 	speedStep   int     // After how many drops to increase the speed
 	bulletSpeed int32   // Speed of a bullet
 	fireRate    float64 // Rate at that the aliens fire
+	stepSizeX   int32   // Horizontal step size
+	stepSizeY   int32   // Vertical step size
 }
 
 // alienGrid holds the alien grid state
@@ -65,7 +67,8 @@ type alienGrid struct {
 	alienGridPos [][]*alien // List of all alien grid positions
 	direction    int32      // direction of x movement (1: left, -1: right)
 	dropCount    int        // How often the grid moved down in y
-	speed        int32      // Grid movement speed
+	speed        int        // Grid movement speed
+	moveCounter  int        // Counts how many moves have been requested
 }
 
 // newAlienGrid creates a new alien grid
@@ -77,7 +80,7 @@ func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error
 		r:         renderer,
 		direction: 1,
 		dropCount: 0,
-		speed:     c.speed,
+		speed:     1,
 	}
 
 	var err error
@@ -127,33 +130,39 @@ func (ag *alienGrid) Draw() {
 
 // move moves the alien grid left and right and down
 func (ag *alienGrid) move() {
+	// Update the alien grid only every x frames
+	ag.moveCounter++
+	if ag.speed < ag.c.speedMax &&
+		ag.moveCounter%(ag.c.speedMax-ag.speed) != 0 {
+		return
+	}
+
 	// Viewport && grid dimensions
 	maxX, _, _ := ag.r.GetRendererOutputSize()
 	x1, _, x2, _ := ag.getDimensions()
 
 	// Check if the grid hits the boundary
-	moveY := false
-	if x2 >= int32(maxX)-ag.c.returnPoint {
-		ag.direction = -1
-		moveY = true
-	} else if x1 <= ag.c.returnPoint {
-		ag.direction = 1
-		moveY = true
-	}
+	moveY := x2+ag.c.stepSizeX*ag.direction >= int32(maxX)-ag.c.returnPoint ||
+		x1+ag.c.stepSizeX*ag.direction <= ag.c.returnPoint
 
-	// Increase the speed over time
 	if moveY {
+		// Increase the speed over time
 		ag.dropCount++
 		if ag.dropCount%ag.c.speedStep == 0 {
 			ag.speed++
 		}
+
+		// Switch direction
+		ag.direction *= -1
 	}
 
 	// Move all aliens
 	for _, a := range ag.alienList {
-		a.x += ag.direction * ag.speed
 		if moveY {
-			a.y += 3
+			a.y += ag.c.stepSizeY
+		} else {
+			a.x += ag.direction * ag.c.stepSizeX
+
 		}
 	}
 }
