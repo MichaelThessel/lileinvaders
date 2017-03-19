@@ -20,22 +20,17 @@ type alien struct {
 }
 
 // newAlien generates a alien
-func newAlien(r *sdl.Renderer, x, y int32) (*alien, error) {
+func newAlien(r *sdl.Renderer, t *sdl.Texture, x, y int32) *alien {
 	a := &alien{
 		r: r,
+		t: t,
 		w: 80,
 		h: 86,
 		x: x,
 		y: y,
 	}
 
-	var err error
-	a.t, err = img.LoadTexture(r, "assets/alien.png")
-	if err != nil {
-		return nil, fmt.Errorf("couldn't create alien texture: %v", err)
-	}
-
-	return a, nil
+	return a
 }
 
 // Draw draws the alien
@@ -62,6 +57,7 @@ type alienGridConfig struct {
 type alienGrid struct {
 	c            *alienGridConfig
 	r            *sdl.Renderer
+	t            *sdl.Texture
 	sounds       map[string]*mix.Chunk
 	alienList    []*alien   // List of all aliens
 	alienGridPos [][]*alien // List of all alien grid positions
@@ -72,39 +68,39 @@ type alienGrid struct {
 }
 
 // newAlienGrid creates a new alien grid
-func newAlienGrid(renderer *sdl.Renderer, c *alienGridConfig) (*alienGrid, error) {
-	maxX, _, _ := renderer.GetRendererOutputSize()
+func newAlienGrid(r *sdl.Renderer, c *alienGridConfig) (*alienGrid, error) {
+	maxX, _, _ := r.GetRendererOutputSize()
 
 	ag := &alienGrid{
 		c:         c,
-		r:         renderer,
+		r:         r,
 		direction: 1,
 		dropCount: 0,
 		speed:     1,
 	}
 
 	var err error
-	textureWidth := 80 //TODO: get this dynamically
+	ag.t, err = img.LoadTexture(ag.r, "assets/alien.png")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create alien texture: %v", err)
+	}
+
+	textureWidth := 80 // TODO: get this dynamically
 	textureHeight := 86
 
-	gridWidth := (textureWidth+ag.c.marginCol)*ag.c.cols - ag.c.marginCol
-
-	startX := (maxX - gridWidth) / 2
+	// Initialize the alien grid
+	startX := (maxX - (textureWidth+ag.c.marginCol)*ag.c.cols - ag.c.marginCol) / 2
 	startY := 50
-
 	currentX := startX
 	currentY := startY
 	ag.alienGridPos = make([][]*alien, ag.c.rows)
-	for r := 0; r < ag.c.rows; r++ {
-		ag.alienGridPos[r] = make([]*alien, ag.c.cols)
-		for c := 0; c < ag.c.cols; c++ {
-			a, err := newAlien(renderer, int32(currentX), int32(currentY))
+	for row := 0; row < ag.c.rows; row++ {
+		ag.alienGridPos[row] = make([]*alien, ag.c.cols)
+		for col := 0; col < ag.c.cols; col++ {
+			a := newAlien(r, ag.t, int32(currentX), int32(currentY))
 			currentX += textureWidth + ag.c.marginCol
-			if err != nil {
-				return nil, err
-			}
 			ag.alienList = append(ag.alienList, a)
-			ag.alienGridPos[r][c] = a
+			ag.alienGridPos[row][col] = a
 		}
 		currentX = startX
 		currentY += textureHeight + ag.c.marginRow

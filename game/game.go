@@ -69,7 +69,7 @@ func (g *Game) initConfig() {
 			marginCol:   20,
 			returnPoint: 30,
 			speedMax:    5,
-			speedStep:   2,
+			speedStep:   3,
 			bulletSpeed: 15,
 			fireRate:    0.05,
 			stepSizeX:   10,
