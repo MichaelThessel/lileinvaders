@@ -169,7 +169,7 @@ func (ag *alienGrid) getDimensions() (x1, y1, x2, y2 int32) {
 }
 
 // test hit checks if a bullet has hit an alien in the grid
-func (ag *alienGrid) testHit(bl *bulletList) {
+func (ag *alienGrid) testHit(bl *bulletList) bool {
 	x1, y1, x2, _ := ag.getDimensions()
 
 	for _, b := range *bl {
@@ -187,9 +187,12 @@ func (ag *alienGrid) testHit(bl *bulletList) {
 			// Hit detected: remove alien & bullet
 			ag.remove(a)
 			bl.remove(b)
-			break
+
+			return true
 		}
 	}
+
+	return false
 }
 
 // remove removes an alien from the grid

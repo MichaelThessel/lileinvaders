@@ -6,6 +6,8 @@ import (
 
 	"github.com/MichaelThessel/spacee/app"
 	"github.com/MichaelThessel/spacee/game"
+	"github.com/veandco/go-sdl2/sdl"
+	ttf "github.com/veandco/go-sdl2/sdl_ttf"
 )
 
 func main() {
@@ -16,6 +18,18 @@ func main() {
 		Title:     "e-Space",
 		FrameRate: 30,
 	}
+
+	if err := sdl.Init(sdl.INIT_EVERYTHING); err != nil {
+		fmt.Printf("could not initialize sdl: %v", err)
+		os.Exit(1)
+	}
+	defer sdl.Quit()
+
+	if err := ttf.Init(); err != nil {
+		fmt.Printf("could not initialize ttf: %v", err)
+		os.Exit(1)
+	}
+	defer ttf.Quit()
 
 	a, err := app.New(config)
 	if err != nil {
