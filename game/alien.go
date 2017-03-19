@@ -132,6 +132,7 @@ func (ag *alienGrid) move() {
 		ag.moveCounter%(ag.c.speedMax-ag.speed) != 0 {
 		return
 	}
+	ag.moveCounter = 0
 
 	// Viewport && grid dimensions
 	maxX, _, _ := ag.r.GetRendererOutputSize()
