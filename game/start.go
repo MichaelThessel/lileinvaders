@@ -10,35 +10,42 @@ import (
 
 // start holds the start screen state
 type start struct {
-	r         *sdl.Renderer
-	t         *sdl.Texture
-	titleFont *ttf.Font
-	infoFont  *ttf.Font
-	x         int32
-	y         int32
-	w         int32
-	h         int32
+	r            *sdl.Renderer
+	t1           *sdl.Texture
+	t2           *sdl.Texture
+	tx           int32
+	ty           int32
+	tw           int32
+	th           int32
+	titleFont    *ttf.Font
+	infoFont     *ttf.Font
+	frameCounter int
 }
 
 // newStart returns a new start screen
 func newStart(r *sdl.Renderer) (*start, error) {
 	maxX, maxY, _ := r.GetRendererOutputSize()
 	s := &start{
-		r: r,
-		w: 400,
-		h: 428,
+		r:            r,
+		tw:           400,
+		th:           428,
+		frameCounter: 0,
 	}
 
 	// Set texture
 	var err error
-	s.t, err = img.LoadTexture(r, "assets/alien_l.png")
+	s.t1, err = img.LoadTexture(r, "assets/alien_l1.png")
 	if err != nil {
-		return nil, fmt.Errorf("couldn't create start texture: %v", err)
+		return nil, fmt.Errorf("couldn't create start texture 1: %v", err)
+	}
+	s.t2, err = img.LoadTexture(r, "assets/alien_l2.png")
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create start texture 2: %v", err)
 	}
 
 	// Set position
-	s.x = int32(maxX)/2 - s.w/2
-	s.y = int32(maxY)/2 - s.h/2 - 100
+	s.tx = int32(maxX)/2 - s.tw/2
+	s.ty = int32(maxY)/2 - s.th/2 - 100
 
 	// Set title font
 	s.titleFont, err = ttf.OpenFont("assets/font.ttf", 80)
@@ -57,7 +64,15 @@ func newStart(r *sdl.Renderer) (*start, error) {
 
 // Draw draws the start screen
 func (s *start) Draw() {
-	s.r.Copy(s.t, nil, &sdl.Rect{X: s.x, Y: s.y, W: s.w, H: s.h})
+	s.frameCounter++
+	if s.frameCounter < 10 {
+		s.r.Copy(s.t1, nil, &sdl.Rect{X: s.tx, Y: s.ty, W: s.tw, H: s.th})
+	} else {
+		s.r.Copy(s.t2, nil, &sdl.Rect{X: s.tx, Y: s.ty, W: s.tw, H: s.th})
+	}
+	if s.frameCounter > 20 {
+		s.frameCounter = 0
+	}
 
 	maxX, maxY, _ := s.r.GetRendererOutputSize()
 
