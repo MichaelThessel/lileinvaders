@@ -178,6 +178,13 @@ func (g *Game) scenePlay() error {
 		}
 	})
 
+	// Test if aliens collided with player
+	g.a.RegisterRenderCallback(1, func() {
+		if g.ag.testPlayerCollission(g.p) {
+			g.switchScene(sceneEnd)
+		}
+	})
+
 	// Aliens fire
 	g.a.RegisterRenderCallback(1, func() { g.ag.fire(g.abl) })
 

@@ -223,6 +223,37 @@ func (ag *alienGrid) testBoundary() bool {
 	return y >= int32(maxY)
 }
 
+// testPlayerCollission checks if an alien has hit the player
+func (ag *alienGrid) testPlayerCollission(p *player) (collission bool) {
+	_, _, _, y := ag.getDimensions()
+
+	// Test if grid is higher than player
+	if p.y > y {
+		return
+	}
+
+	bottomAliens := ag.bottomAliens()
+
+	for c := 0; c < ag.c.cols; c++ {
+		if bottomAliens[c] == nil {
+			continue
+		}
+
+		a := bottomAliens[c]
+
+		// Test if alien is higher than player
+		if a.y+a.h < p.y {
+			continue
+		}
+
+		if a.x >= p.x && a.x+a.w <= p.x+p.w {
+			return true
+		}
+	}
+
+	return
+}
+
 // remove removes an alien from the grid
 func (ag *alienGrid) remove(a *alien) {
 	// Remove alien from alien list
@@ -251,16 +282,8 @@ func (ag *alienGrid) fire(bullets *bulletList) {
 		return
 	}
 
-	// Find lowest aliens
-	bottomAliens := make(map[int]*alien, ag.c.cols)
-	for r := range ag.alienGridPos {
-		for c, a := range ag.alienGridPos[r] {
-			if ag.alienGridPos[r][c] != nil {
-				bottomAliens[c] = a
-			}
-		}
-	}
-
+	// Lowest row of aliens fires
+	bottomAliens := ag.bottomAliens()
 	for c := 0; c < ag.c.cols; c++ {
 		if rand.Float64() > ag.c.fireRate {
 			continue
@@ -283,4 +306,18 @@ func (ag *alienGrid) fire(bullets *bulletList) {
 			)
 		}
 	}
+}
+
+// bottomAliens returns a map of aliens that are the lowest of its column
+func (ag *alienGrid) bottomAliens() map[int]*alien {
+	bottomAliens := make(map[int]*alien, ag.c.cols)
+	for r := range ag.alienGridPos {
+		for c, a := range ag.alienGridPos[r] {
+			if ag.alienGridPos[r][c] != nil {
+				bottomAliens[c] = a
+			}
+		}
+	}
+
+	return bottomAliens
 }
