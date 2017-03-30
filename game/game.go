@@ -20,6 +20,7 @@ type Game struct {
 	a     *app.App
 	scene string
 	start *start      // Start screen
+	end   *end        // End screen
 	p     *player     // Player
 	pbl   *bulletList // Player bullet list
 	abl   *bulletList // Alien bullet list
@@ -105,10 +106,10 @@ func (g *Game) sceneStart() error {
 		return err
 	}
 
-	// Draw player
+	// Draw start screen
 	g.a.RegisterRenderCallback(1, g.start.Draw)
 
-	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.switchSzene(scenePlay) }) // start
+	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchSzene(scenePlay) }) // start
 
 	return nil
 }
@@ -129,6 +130,7 @@ func (g *Game) scenePlay() error {
 	}
 
 	// Stats
+	g.score = 0
 	g.stats, err = newStats(g.a.GetRenderer(), g.c.pc.lifes)
 	if err != nil {
 		return err
@@ -175,7 +177,17 @@ func (g *Game) scenePlay() error {
 
 // sceneEnd sets up the end scene
 func (g *Game) sceneEnd() error {
-	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.switchSzene(scenePlay) }) // start
+	// End screen
+	var err error
+	g.end, err = newEnd(g.a.GetRenderer(), g.score)
+	if err != nil {
+		return err
+	}
+
+	// Draw end screen
+	g.a.RegisterRenderCallback(1, g.end.Draw)
+
+	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchSzene(scenePlay) }) // start
 
 	return nil
 }
