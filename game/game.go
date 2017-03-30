@@ -47,7 +47,7 @@ func New(a *app.App) (*Game, error) {
 	}
 	g.initConfig()
 
-	if err := g.switchSzene(sceneStart); err != nil {
+	if err := g.switchScene(sceneStart); err != nil {
 		return nil, err
 	}
 
@@ -78,8 +78,8 @@ func (g *Game) initConfig() {
 	}
 }
 
-// switchSzene switches to a different scene
-func (g *Game) switchSzene(scene string) error {
+// switchScene switches to a different scene
+func (g *Game) switchScene(scene string) error {
 	g.a.ClearCallbacks()
 
 	switch scene {
@@ -109,7 +109,7 @@ func (g *Game) sceneStart() error {
 	// Draw start screen
 	g.a.RegisterRenderCallback(1, g.start.Draw)
 
-	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchSzene(scenePlay) }) // start
+	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchScene(scenePlay) }) // start
 
 	return nil
 }
@@ -167,14 +167,14 @@ func (g *Game) scenePlay() error {
 	// Test if alien bullets have hit
 	g.a.RegisterRenderCallback(1, func() {
 		if g.p.testHit(g.abl) {
-			g.switchSzene(sceneEnd)
+			g.switchScene(sceneEnd)
 		}
 	})
 
 	// Test if aliens have reached the ground
 	g.a.RegisterRenderCallback(1, func() {
 		if g.ag.testBoundary() {
-			g.switchSzene(sceneEnd)
+			g.switchScene(sceneEnd)
 		}
 	})
 
@@ -196,7 +196,7 @@ func (g *Game) sceneEnd() error {
 	// Draw end screen
 	g.a.RegisterRenderCallback(1, g.end.Draw)
 
-	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchSzene(scenePlay) }) // start
+	g.a.RegisterKeyCallback(sdl.K_RETURN, func() { g.switchScene(scenePlay) }) // start
 
 	return nil
 }
