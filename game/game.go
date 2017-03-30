@@ -19,6 +19,7 @@ type Game struct {
 	c     *Config
 	a     *app.App
 	scene string
+	start *start      // Start screen
 	p     *player     // Player
 	pbl   *bulletList // Player bullet list
 	abl   *bulletList // Alien bullet list
@@ -97,6 +98,16 @@ func (g *Game) switchSzene(scene string) error {
 
 // sceneStart sets up the start screen
 func (g *Game) sceneStart() error {
+	// Start screen
+	var err error
+	g.start, err = newStart(g.a.GetRenderer())
+	if err != nil {
+		return err
+	}
+
+	// Draw player
+	g.a.RegisterRenderCallback(1, g.start.Draw)
+
 	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.switchSzene(scenePlay) }) // start
 
 	return nil
