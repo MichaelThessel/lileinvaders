@@ -186,7 +186,7 @@ func (ag *alienGrid) getDimensions() (x1, y1, x2, y2 int32) {
 	return
 }
 
-// test hit checks if a bullet has hit an alien in the grid
+// testHit checks if a bullet has hit an alien in the grid
 func (ag *alienGrid) testHit(bl *bulletList) (bool, int) {
 	x1, y1, x2, _ := ag.getDimensions()
 
@@ -213,6 +213,14 @@ func (ag *alienGrid) testHit(bl *bulletList) (bool, int) {
 	}
 
 	return false, len(ag.alienList)
+}
+
+// testBoundary checks if the aliens have reached the ground
+func (ag *alienGrid) testBoundary() bool {
+	_, _, _, y := ag.getDimensions()
+	_, maxY, _ := ag.r.GetRendererOutputSize()
+
+	return y >= int32(maxY)
 }
 
 // remove removes an alien from the grid

@@ -154,7 +154,7 @@ func (g *Game) scenePlay() error {
 	// Draw stats
 	g.a.RegisterRenderCallback(1, func() { g.stats.Draw(g.p.lifes, g.score) })
 
-	// Test if bullets have hit
+	// Test if player bullets have hit
 	g.a.RegisterRenderCallback(1, func() {
 		if hit, len := g.ag.testHit(g.pbl); hit {
 			g.score += 30
@@ -163,8 +163,17 @@ func (g *Game) scenePlay() error {
 			}
 		}
 	})
+
+	// Test if alien bullets have hit
 	g.a.RegisterRenderCallback(1, func() {
 		if g.p.testHit(g.abl) {
+			g.switchSzene(sceneEnd)
+		}
+	})
+
+	// Test if aliens have reached the ground
+	g.a.RegisterRenderCallback(1, func() {
+		if g.ag.testBoundary() {
 			g.switchSzene(sceneEnd)
 		}
 	})
