@@ -110,7 +110,7 @@ func (p *player) Fire(bullets *bulletList) {
 }
 
 // test hit checks if a bullet has hit player
-func (p *player) testHit(bl *bulletList) {
+func (p *player) testHit(bl *bulletList) (dead bool) {
 	for _, b := range *bl {
 		// Continue if bullet is beyond player dimensions
 		if b.y+b.h < p.y || b.x+b.w < p.x || b.x > p.x+p.w {
@@ -123,8 +123,10 @@ func (p *player) testHit(bl *bulletList) {
 
 		p.lifes--
 		if p.lifes == 0 {
-			// TODO: ending screen
-			panic("dead")
+			dead = true
+			return
 		}
 	}
+
+	return
 }

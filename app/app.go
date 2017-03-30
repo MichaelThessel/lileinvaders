@@ -166,6 +166,11 @@ func (a *App) RegisterKeyCallback(key sdl.Keycode, callback func()) {
 	})
 }
 
+// ClearKeyCallbacks removes all key callbacks
+func (a *App) ClearKeyCallbacks() {
+	a.keyCallbacks = []keyCallback{}
+}
+
 // renderCallback defines callbacks to inject into the render loop
 type renderCallback struct {
 	priority int
@@ -186,6 +191,17 @@ func (a *App) RegisterRenderCallback(priority int, callback func()) {
 		priority: priority,
 		callback: callback,
 	})
+}
+
+// ClearRenderCallbacks removes all render callbacks
+func (a *App) ClearRenderCallbacks() {
+	a.renderCallbacks = renderCallbacks{}
+}
+
+// ClearCallbacks removes all key & render callbacks
+func (a *App) ClearCallbacks() {
+	a.ClearKeyCallbacks()
+	a.ClearRenderCallbacks()
 }
 
 // GetRenderer returns a renderer instance

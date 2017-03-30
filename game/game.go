@@ -1,14 +1,24 @@
 package game
 
 import (
+	"fmt"
+
 	"github.com/MichaelThessel/spacee/app"
 	"github.com/veandco/go-sdl2/sdl"
+)
+
+const (
+	// Game scene constants
+	sceneStart = "start"
+	scenePlay  = "play"
+	sceneEnd   = "end"
 )
 
 // Game holds the game state
 type Game struct {
 	c     *Config
 	a     *app.App
+	scene string
 	p     *player     // Player
 	pbl   *bulletList // Player bullet list
 	abl   *bulletList // Alien bullet list
@@ -25,9 +35,8 @@ type Config struct {
 
 // New returns a new game
 func New(a *app.App) (*Game, error) {
-	var err error
-
 	g := &Game{
+		scene: sceneStart,
 		a:     a,
 		score: 0,
 		pbl:   &bulletList{},
@@ -36,25 +45,9 @@ func New(a *app.App) (*Game, error) {
 	}
 	g.initConfig()
 
-	// Player
-	g.p, err = newPlayer(a.GetRenderer(), g.c.pc)
-	if err != nil {
+	if err := g.switchSzene(sceneStart); err != nil {
 		return nil, err
 	}
-
-	// Start a new level
-	err = g.startLevel(a.GetRenderer())
-	if err != nil {
-		return nil, err
-	}
-
-	// Stats
-	g.stats, err = newStats(a.GetRenderer(), g.c.pc.lifes)
-	if err != nil {
-		return nil, err
-	}
-
-	g.setup()
 
 	return g, nil
 }
@@ -83,8 +76,53 @@ func (g *Game) initConfig() {
 	}
 }
 
-// setup sets up the game
-func (g *Game) setup() {
+// switchSzene switches to a different scene
+func (g *Game) switchSzene(scene string) error {
+	g.a.ClearCallbacks()
+
+	switch scene {
+	case sceneStart:
+		g.scene = sceneStart
+		return g.sceneStart()
+	case scenePlay:
+		g.scene = scenePlay
+		return g.scenePlay()
+	case sceneEnd:
+		g.scene = sceneEnd
+		return g.sceneEnd()
+	default:
+		panic(fmt.Sprintf("Invalid scene %s", scene))
+	}
+}
+
+// sceneStart sets up the start screen
+func (g *Game) sceneStart() error {
+	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.switchSzene(scenePlay) }) // start
+
+	return nil
+}
+
+// scenePlay sets up the game
+func (g *Game) scenePlay() error {
+	// Player
+	var err error
+	g.p, err = newPlayer(g.a.GetRenderer(), g.c.pc)
+	if err != nil {
+		return err
+	}
+
+	// Start a new level
+	err = g.startLevel(g.a.GetRenderer())
+	if err != nil {
+		return err
+	}
+
+	// Stats
+	g.stats, err = newStats(g.a.GetRenderer(), g.c.pc.lifes)
+	if err != nil {
+		return err
+	}
+
 	// Keyboard
 	g.a.RegisterKeyCallback(sdl.K_LEFT, func() { g.p.Move('l') })    // left
 	g.a.RegisterKeyCallback(sdl.K_RIGHT, func() { g.p.Move('r') })   // right
@@ -112,10 +150,23 @@ func (g *Game) setup() {
 			}
 		}
 	})
-	g.a.RegisterRenderCallback(1, func() { g.p.testHit(g.abl) })
+	g.a.RegisterRenderCallback(1, func() {
+		if g.p.testHit(g.abl) {
+			g.switchSzene(sceneEnd)
+		}
+	})
 
 	// Aliens fire
 	g.a.RegisterRenderCallback(1, func() { g.ag.fire(g.abl) })
+
+	return nil
+}
+
+// sceneEnd sets up the end scene
+func (g *Game) sceneEnd() error {
+	g.a.RegisterKeyCallback(sdl.K_SPACE, func() { g.switchSzene(scenePlay) }) // start
+
+	return nil
 }
 
 // startLevel starts a level
