@@ -83,7 +83,7 @@ func (s *start) Draw() {
 	defer title.Free()
 
 	info, _ := s.infoFont.RenderUTF8_Solid(
-		"Press Space to Start",
+		"PRESS SPACE TO START",
 		sdl.Color{R: 0xF6, G: 0x25, B: 0x9B, A: 0},
 	)
 	defer info.Free()
